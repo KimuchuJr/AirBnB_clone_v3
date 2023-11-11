@@ -6,6 +6,7 @@ Contains the TestDBStorageDocs and TestDBStorage classes
 from datetime import datetime
 import inspect
 import models
+from models import storage
 from models.engine import db_storage
 from models.amenity import Amenity
 from models.base_model import BaseModel
@@ -39,11 +40,11 @@ class TestDBStorageDocs(unittest.TestCase):
 
     def test_pep8_conformance_test_db_storage(self):
         """Test tests/test_models/test_db_storage.py conforms to PEP8."""
+        tesst = 'tests/test_models/test_engine/test_db_storage.py'
+        err = "Found code style errors (and warnings)."
         pep8s = pep8.StyleGuide(quiet=True)
-        result = pep8s.check_files(['tests/test_models/test_engine/\
-test_db_storage.py'])
-        self.assertEqual(result.total_errors, 0,
-                         "Found code style errors (and warnings).")
+        result = pep8s.check_files([tesst])
+        self.assertEqual(result.total_errors, 0, err)
 
     def test_db_storage_module_docstring(self):
         """Test for the db_storage.py module docstring"""
@@ -68,7 +69,7 @@ test_db_storage.py'])
                             "{:s} method needs a docstring".format(func[0]))
 
 
-class TestFileStorage(unittest.TestCase):
+class TestDBStorage(unittest.TestCase):
     """Test the FileStorage class"""
     @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
     def test_all_returns_dict(self):
@@ -89,20 +90,18 @@ class TestFileStorage(unittest.TestCase):
 
     @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
     def test_get(self):
-        """Test for get() method"""
-        self.state1 = State(name="Texas")
-        self.state1.save()
-        state_id = self.state1.id
-        states_id = models.storage.get("State", self.state1.id)
-        self.assertTrue(states_id)
+        """Test that get gets the objects"""
+        meowtana = State(name='Meowtana')
+        meowtana.save()
+        new_var = meowtana.id
+        self.assertEqual(meowtana, storage.get(State, new_var))
 
     @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
     def test_count(self):
-        """Test for count() method"""
-        count_cls_0 = models.storage.count()
-        self.state1 = State(name="Texas")
-        models.storage.new(self.state1)
-        self.state1.save()
-        count_cls_1 = models.storage.count()
-        self.assertNotEqual(count_cls_0, count_cls_1)
-  
+        """Test to count obj in storage"""
+        before = storage.count(State)
+        meowtana = State(name="Meow Island")
+        meowtana.save()
+        after = storage.count(State)
+        self.assertNotEqual(before, after)
+        self.assertEqual(before + 1, after)

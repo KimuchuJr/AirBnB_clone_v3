@@ -39,11 +39,11 @@ class TestFileStorageDocs(unittest.TestCase):
 
     def test_pep8_conformance_test_file_storage(self):
         """Test tests/test_models/test_file_storage.py conforms to PEP8."""
+        tesst = 'tests/test_models/test_engine/test_file_storage.py'
+        err = "Found code style errors (and warnings)."
         pep8s = pep8.StyleGuide(quiet=True)
-        result = pep8s.check_files(['tests/test_models/test_engine/\
-test_file_storage.py'])
-        self.assertEqual(result.total_errors, 0,
-                         "Found code style errors (and warnings).")
+        result = pep8s.check_files([tesst])
+        self.assertEqual(result.total_errors, 0, err)
 
     def test_file_storage_module_docstring(self):
         """Test for the file_storage.py module docstring"""
@@ -114,21 +114,24 @@ class TestFileStorage(unittest.TestCase):
             js = f.read()
         self.assertEqual(json.loads(string), json.loads(js))
 
-    @unittest.skipIf(models.storage_t == 'db', "not testing file storage")
+    @unittest.skipIf(models.storage_t == 'db', "not testing db storage")
     def test_get(self):
-        """Test for get() method"""
-        self.state1 = State(name="Texas")
-        self.state1.save()
-        state_id = self.state1.id
-        states_id = models.storage.get("State", self.state1.id)
-        self.assertTrue(states_id)
+        """Test that get gets the objects"""
+        storage = FileStorage()
+        meow_state = State(name="Michigan")
+        meow_state.save()
+        first_state_id = list(storage.all(State).values())[0].id
+        the_state_id = storage.get(State, first_state_id)
+        self.assertIs(type(the_state_id), State)
+        self.assertEqual(meow_state.name, "Michigan")
 
-    @unittest.skipIf(models.storage_t == 'db', "not testing file storage")
+    @unittest.skipIf(models.storage_t == 'db', "not testing db storage")
     def test_count(self):
-        """Test for count() method"""
-        count_cls_0 = models.storage.count()
-        self.state1 = State(name="Texas")
-        models.storage.new(self.state1)
-        self.state1.save()
-        count_cls_1 = models.storage.count()
-        self.assertNotEqual(count_cls_0, count_cls_1)
+        """Test to count obj in storage"""
+        storage = FileStorage()
+        before = storage.count("State")
+        meowtana = State(name="Meowtana")
+        meowtana.save()
+        after = storage.count("State")
+        self.assertNotEqual(before, after)
+        self.assertEqual(before + 1, after)
